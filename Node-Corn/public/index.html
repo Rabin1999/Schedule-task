@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Real-Time Cron Logs</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f0f0f0;
+      margin: 0;
+      padding: 0;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+    }
+    .container {
+      background-color: #fff;
+      padding: 20px;
+      border-radius: 8px;
+      box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+      max-width: 600px;
+      width: 100%;
+    }
+    h1 {
+      margin-top: 0;
+      font-size: 24px;
+      text-align: center;
+    }
+    button {
+      display: block;
+      width: 100%;
+      padding: 10px;
+      font-size: 16px;
+      color: #fff;
+      background-color: #007bff;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      transition: background-color 0.3s;
+    }
+    button:hover {
+      background-color: #0056b3;
+    }
+    #logs {
+      white-space: pre-wrap;
+      background: #f4f4f4;
+      padding: 10px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      margin-top: 20px;
+      max-height: 300px;
+      overflow-y: auto;
+    }
+    .modal {
+      display: none;
+      position: fixed;
+      z-index: 1;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 100%;
+      overflow: auto;
+      background-color: rgba(0, 0, 0, 0.4);
+    }
+    .modal-content {
+      background-color: #fefefe;
+      margin: 15% auto;
+      padding: 20px;
+      border: 1px solid #888;
+      width: 80%;
+      max-width: 600px;
+      border-radius: 8px;
+    }
+    .close {
+      color: #aaa;
+      float: right;
+      font-size: 28px;
+      font-weight: bold;
+    }
+    .close:hover,
+    .close:focus {
+      color: black;
+      text-decoration: none;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Real-Time data</h1>
+    <button onclick="fetchLogs()">Fetch data</button>
+    <div id="logs">Click the button to fetch .</div>
+  </div>
+
+  <div id="myModal" class="modal">
+    <div class="modal-content">
+      <span class="close" onclick="closeModal()">&times;</span>
+      <p id="modalMessage"></p>
+    </div>
+  </div>
+
+  <script src="/socket.io/socket.io.js"></script>
+  <script>
+    const socket = io();
+
+    socket.on('newLog', (message) => {
+      const logsDiv = document.getElementById('logs');
+      const logEntry = document.createElement('div');
+      logEntry.textContent = message;
+      logsDiv.appendChild(logEntry);
+    });
+
+    socket.on('conditionMet', (message) => {
+      showModal(message);
+    });
+
+    function fetchLogs() {
+      fetch('/logs')
+        .then(response => response.text())
+        .then(data => {
+          document.getElementById('logs').innerText = data;
+        })
+        .catch(error => {
+          console.error('Error fetching logs:', error);
+        });
+    }
+
+    function showModal(message) {
+      const modal = document.getElementById('myModal');
+      const modalMessage = document.getElementById('modalMessage');
+      modalMessage.textContent = message;
+      modal.style.display = "block";
+    }
+
+    function closeModal() {
+      const modal = document.getElementById('myModal');
+      modal.style.display = "none";
+    }
+
+    window.onclick = function(event) {
+      const modal = document.getElementById('myModal');
+      if (event.target == modal) {
+        modal.style.display = "none";
+      }
+    }
+  </script>
+</body>
+</html>
